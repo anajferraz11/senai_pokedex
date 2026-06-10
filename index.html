@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pokédex Pro Deluxe</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap');
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Poppins',sans-serif;
+}
+
+body{
+min-height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+background:linear-gradient(-45deg,#ff512f,#dd2476,#1d2671,#c33764);
+background-size:400% 400%;
+animation:bg 10s ease infinite;
+padding:20px;
+}
+
+@keyframes bg{
+0%{background-position:0% 50%;}
+50%{background-position:100% 50%;}
+100%{background-position:0% 50%;}
+}
+
+.pokedex{
+width:430px;
+padding:25px;
+border-radius:25px;
+background:rgba(255,255,255,.12);
+backdrop-filter:blur(15px);
+box-shadow:0 10px 30px rgba(0,0,0,.4);
+}
+
+.titulo{
+text-align:center;
+color:white;
+margin-bottom:20px;
+}
+
+input{
+width:100%;
+padding:12px;
+border:none;
+border-radius:12px;
+margin-bottom:20px;
+outline:none;
+font-size:16px;
+}
+
+.card{
+text-align:center;
+background:rgba(255,255,255,.15);
+border-radius:20px;
+padding:20px;
+}
+
+.numero{
+color:#ddd;
+font-size:18px;
+}
+
+.nome{
+color:white;
+font-size:32px;
+margin:10px 0;
+text-transform:capitalize;
+}
+
+img{
+width:220px;
+height:220px;
+object-fit:contain;
+transition:.4s;
+}
+
+img:hover{
+transform:scale(1.1);
+}
+
+.tipo{
+display:inline-block;
+padding:8px 18px;
+background:#ffd700;
+border-radius:20px;
+font-weight:bold;
+margin:5px;
+}
+
+.info{
+margin-top:15px;
+color:white;
+font-size:15px;
+}
+
+.stats{
+margin-top:20px;
+text-align:left;
+}
+
+.stats p{
+color:white;
+margin-top:10px;
+}
+
+.bar{
+height:12px;
+background:#333;
+border-radius:10px;
+overflow:hidden;
+}
+
+.fill{
+height:100%;
+background:linear-gradient(90deg,#00ff88,#00d4ff);
+}
+
+.controles{
+display:flex;
+justify-content:space-between;
+margin-top:20px;
+gap:10px;
+}
+
+button{
+flex:1;
+padding:12px;
+border:none;
+border-radius:12px;
+cursor:pointer;
+font-weight:bold;
+transition:.3s;
+}
+
+button:hover{
+transform:translateY(-3px);
+}
+
+.loading{
+color:white;
+text-align:center;
+margin-top:10px;
+}
+
+.listaPokemon{
+height:250px;
+overflow-y:auto;
+margin-bottom:20px;
+padding:10px;
+background:rgba(255,255,255,.08);
+border-radius:15px;
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:10px;
+}
+
+.pokeItem{
+background:rgba(255,255,255,.12);
+padding:10px;
+border-radius:12px;
+cursor:pointer;
+text-align:center;
+transition:.3s;
+}
+
+.pokeItem:hover{
+transform:scale(1.05);
+background:rgba(255,255,255,.25);
+}
+
+.pokeItem img{
+width:80px;
+height:80px;
+object-fit:contain;
+}
+
+.pokeItem p{
+color:white;
+font-size:14px;
+font-weight:bold;
+margin-top:5px;
+}
+</style>
+</head>
+<body>
+
+<div class="pokedex">
+
+<h1 class="titulo">⚡ Pokédex Pro Deluxe</h1>
+
+<input
+type="text"
+id="busca"
+placeholder="Nome ou número do Pokémon">
+
+<div class="card">
+
+<p class="numero" id="numero"></p>
+
+<img id="imagem">
+
+<h2 class="nome" id="nome"></h2>
+
+<div id="tipos"></div>
+
+<div class="info">
+<p id="altura"></p>
+<p id="peso"></p>
+<p id="exp"></p>
+</div>
+
+<div class="stats">
+
+<p>HP</p>
+<div class="bar">
+<div class="fill" id="hp"></div>
+</div>
+
+<p>Ataque</p>
+<div class="bar">
+<div class="fill" id="ataque"></div>
+</div>
+
+<p>Defesa</p>
+<div class="bar">
+<div class="fill" id="defesa"></div>
+</div>
+
+<p>Velocidade</p>
+<div class="bar">
+<div class="fill" id="velocidade"></div>
+</div>
+
+</div>
+
+<div class="loading" id="loading"></div>
+
+</div>
+
+<div class="controles">
+<button onclick="anterior()">⬅ Anterior</button>
+<button onclick="buscarPokemon()">🔍 Buscar</button>
+<button onclick="proximo()">Próximo ➡</button>
+</div>
+
+</div>
+
+<script>
+
+const pokemons = [
+1,2,3,4,5,6,7,8,9,25,26,39,52,54,58,63,65,66,68,
+74,76,92,94,95,104,130,132,133,134,135,136,143,
+149,150,151,196,197,212,248,257,260,282,330,
+373,376,384,445,448,658,700,906,909,912
+];
+
+let pokemonAtual = 0;
+
+const numero = document.getElementById("numero");
+const nome = document.getElementById("nome");
+const imagem = document.getElementById("imagem");
+const tipos = document.getElementById("tipos");
+
+const hp = document.getElementById("hp");
+const ataque = document.getElementById("ataque");
+const defesa = document.getElementById("defesa");
+const velocidade = document.getElementById("velocidade");
+
+const altura = document.getElementById("altura");
+const peso = document.getElementById("peso");
+const exp = document.getElementById("exp");
+
+async function carregarPokemon(id){
+
+try{
+
+const resposta = await fetch(
+`https://pokeapi.co/api/v2/pokemon/${id}`
+);
+
+const data = await resposta.json();
+
+numero.innerHTML = "#" + data.id;
+nome.innerHTML = data.name;
+
+imagem.src =
+data.sprites.other["official-artwork"].front_default ||
+data.sprites.front_default;
+
+tipos.innerHTML = "";
+
+data.types.forEach(t => {
+
+const span = document.createElement("span");
+
+span.className = "tipo";
+span.innerHTML = t.type.name;
+
+tipos.appendChild(span);
+
+});
+
+altura.innerHTML =
+"📏 Altura: " + (data.height/10) + " m";
+
+peso.innerHTML =
+"⚖ Peso: " + (data.weight/10) + " kg";
+
+exp.innerHTML =
+"⭐ Experiência: " + data.base_experience;
+
+hp.style.width =
+Math.min(data.stats[0].base_stat,100) + "%";
+
+ataque.style.width =
+Math.min(data.stats[1].base_stat,100) + "%";
+
+defesa.style.width =
+Math.min(data.stats[2].base_stat,100) + "%";
+
+velocidade.style.width =
+Math.min(data.stats[5].base_stat,100) + "%";
+
+}catch(e){
+console.log(e);
+}
+
+}
+
+async function criarLista(){
+
+const lista =
+document.getElementById("listaPokemon");
+
+for(const id of pokemons){
+
+const resposta =
+await fetch(
+`https://pokeapi.co/api/v2/pokemon/${id}`
+);
+
+const data =
+await resposta.json();
+
+const div =
+document.createElement("div");
+
+div.className =
+"pokeItem";
+
+div.innerHTML = ` <img src="${data.sprites.front_default}">
+
+<p>${data.name}</p>
+`;
+
+div.onclick = () => {
+pokemonAtual = pokemons.indexOf(id);
+carregarPokemon(id);
+};
+
+lista.appendChild(div);
+
+}
+
+}
+
+function proximo(){
+
+pokemonAtual++;
+
+if(pokemonAtual >= pokemons.length){
+pokemonAtual = 0;
+}
+
+carregarPokemon(
+pokemons[pokemonAtual]
+);
+
+}
+
+function anterior(){
+
+pokemonAtual--;
+
+if(pokemonAtual < 0){
+pokemonAtual =
+pokemons.length - 1;
+}
+
+carregarPokemon(
+pokemons[pokemonAtual]
+);
+
+}
+
+criarLista();
+carregarPokemon(
+pokemons[0]
+);
+
+
+</script>
+
+</body>
+</html>
